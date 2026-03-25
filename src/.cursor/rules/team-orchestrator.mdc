@@ -1,0 +1,44 @@
+---
+description: Team pipeline contract — artifact paths, full/fast modes, Task order; skill team-orchestrator documents all stages, not only orchestration
+alwaysApply: false
+---
+
+# Team pipeline (contract + orchestration)
+
+Activate the skill **team-orchestrator** (`.cursor/skills/team-orchestrator/SKILL.md`) for the **full pipeline contract** (every stage’s inputs/outputs, gates, `40-plan.plan.md`). The skill id refers to the folder name; the same file is the reference for **all** `team-pipeline-*` agents when they need I/O details—not only for `team-pipeline-orchestrator`.
+
+Use it when coordinating multi-stage work or when the user invokes pipeline stages one at a time. Per-stage Cursor agents: `team-pipeline-analyst`, `team-pipeline-architect`, `team-pipeline-critical-reviewer`, `team-pipeline-planner`, `team-pipeline-plan-reviewer`, `team-pipeline-developer`, `team-pipeline-code-reviewer`, `team-pipeline-orchestrator` (files under `.cursor/agents/team-pipeline-*.md`).
+
+## Run directory
+
+- Pattern: `.cursor/tasks/runs/<YYYYMMDD>_<short-topic-slug>_<seq>/`
+- Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST` (one line = path to active run).
+
+## Modes
+
+- **full:** analyst → architect → critical-reviewer → planner → plan_reviewer → developer → code_reviewer
+- **fast:** analyst → planner → developer (optional code_reviewer); planner must document assumptions in `40-plan.plan.md`
+
+## File I/O by stage (run-relative)
+
+| Stage | Read | Write |
+| ----- | ---- | ----- |
+| analyst | `00-brief.md` | `10-analyst.md`, `manifest.json` |
+| architect | `10-analyst.md` | `20-architecture.md`, `manifest.json` |
+| critical-reviewer | `10-analyst.md`, `20-architecture.md` | `30-critical-review.md`, `manifest.json` |
+| planner (full) | `10-analyst.md`, `20-architecture.md`, optional `30-critical-review.md` | `40-plan.plan.md`, `manifest.json` |
+| planner (fast) | `10-analyst.md` | `40-plan.plan.md`, `manifest.json` |
+| plan_reviewer | `40-plan.plan.md` | `50-plan-review.md`, `manifest.json` |
+| developer (full) | `40-plan.plan.md`, `50-plan-review.md` | code + `60-implementation-notes.md`, `manifest.json` |
+| developer (fast) | `40-plan.plan.md` | code + `60-implementation-notes.md`, `manifest.json` |
+| code_reviewer | `60-implementation-notes.md` | `70-code-review.md`, `manifest.json` |
+
+Before each stage: verify required input files exist; if not, stop and name the missing producer stage.
+
+## Optional specialists
+
+Extra `Task` subagent types (per project rules) may slot in after planning or where `40-plan.plan.md` specifies—never required by this rule; keep artifacts in the same run folder.
+
+## Orchestration
+
+Use `Task` with one `subagent_type` per call. Pass the run directory path and the exact read/write filenames from the skill.

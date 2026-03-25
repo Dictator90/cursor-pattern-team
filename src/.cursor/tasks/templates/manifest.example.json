@@ -1,0 +1,18 @@
+{
+  "run_id": "YYYYMMDD_topic-slug_01",
+  "mode": "full",
+  "topic_slug": "topic-slug",
+  "date": "YYYYMMDD",
+  "seq": "01",
+  "created_at": "ISO-8601",
+  "stages": {
+    "analyst": "pending",
+    "architect": "pending",
+    "critical_reviewer": "pending",
+    "planner": "pending",
+    "plan_reviewer": "pending",
+    "developer": "pending",
+    "code_reviewer": "pending"
+  },
+  "notes": ""
+}
