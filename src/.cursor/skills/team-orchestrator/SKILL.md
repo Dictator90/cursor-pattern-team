@@ -30,10 +30,24 @@ All paths that start with **`.cursor/`** (e.g. `.cursor/tasks/runs/LATEST`, `.cu
 
 ## Run directory
 
-Resolve the **active run folder** (the directory that contains `00-brief.md`, `10-analyst.md`, …):
+Resolve the **active run folder** (the directory that contains `00-brief.md`, `10-analyst.md`, …).
 
-1. If the user message contains `run=<path>`, use that path (absolute or repo-relative). Trim whitespace. **No affinity check** against `00-brief.md` is required — the user chose this folder; you may update artifacts there (including overwriting prior stage outputs for that run).
-2. Else read `.cursor/tasks/runs/LATEST` — **first line** is the **candidate** run path (absolute or repo-relative). Skip leading empty lines if needed. Then apply **§ Same run vs new run** below before treating that folder as final.
+### Parsing `run=` (step 1 — always before `LATEST`)
+
+- **Where to look:** the **entire** user-visible message for this turn — including text **after** a slash command (e.g. `/team-pipeline-critical-reviewer …`) or agent name. Cursor may prepend the command; the rest of the line/body still counts.
+- **Pattern:** case-insensitive `run`, optional whitespace, `=`, optional whitespace, then the path. Examples: `run=.cursor/tasks/runs/foo_01`, `run = .cursor\tasks\runs\foo_01`, `Проверь run=.cursor/tasks/runs/foo_01`.
+- **Windows backslashes:** treat `\` as a path separator — **normalize** to `/` for repo-relative paths (e.g. `.cursor\tasks\runs\20260325_o2k-exchange-audit_01` → `.cursor/tasks/runs/20260325_o2k-exchange-audit_01`) before resolving from the workspace root.
+- **Quoting:** if the path is wrapped in `"..."`, strip quotes and trim.
+- **Absolute paths:** `C:\...`, `D:/...`, UNC — use as-is (after normalizing separators if your tools require it).
+- **If multiple `run=` appear:** use the **last** non-empty one (closest to user intent in long prompts).
+- **If `run=` is present but the path is empty or invalid:** stop and ask the user to fix it — **do not** fall through to `LATEST` silently (that hides mistakes).
+
+**Anti-pattern:** Reading `LATEST` when the user already wrote `run=…` in the same message is a **contract violation**.
+
+**Resolution order:**
+
+1. If **§ Parsing `run=`** yields a path → use it **only** — **do not** read `.cursor/tasks/runs/LATEST` for resolution in this invocation. **No affinity check** when the user passed `run=`; you may update artifacts in that folder.
+2. **Else** read `.cursor/tasks/runs/LATEST` — **first line** is the **candidate** run path (absolute or repo-relative). Skip leading empty lines if needed. Then apply **§ Same run vs new run** below before treating that folder as final.
 3. If still unknown:
    - **Bootstrap** (next subsection) **if** you are **`team-pipeline-orchestrator`** or **`team-pipeline-analyst`** and the **Bootstrap conditions** are satisfied — then the new folder becomes the active run.
    - **Else** **stop** and tell the user exactly what to do (do not guess a path):

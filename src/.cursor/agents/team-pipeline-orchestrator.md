@@ -16,7 +16,8 @@ default_model: inherit
 ## Run layout
 
 - Artifacts: `.cursor/tasks/runs/<YYYYMMDD>_<topic-slug>_<seq>/`
-- Active pointer: `.cursor/tasks/runs/LATEST` (single line = path to run); full rules in `.cursor/skills/team-orchestrator/SKILL.md` § Run directory.
+- **Which run:** `run=` in the user message (full text, including after slash commands; `\` OK on Windows) **overrides** `LATEST` — see `.cursor/skills/team-orchestrator/SKILL.md` § **Parsing `run=`**.
+- Active pointer: `.cursor/tasks/runs/LATEST` (single line = path to run) when `run=` is absent; full rules in skill § Run directory.
 - Templates: `.cursor/tasks/templates/`
 
 ## Modes

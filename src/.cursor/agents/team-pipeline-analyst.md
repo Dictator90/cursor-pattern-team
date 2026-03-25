@@ -17,6 +17,8 @@ default_model: inherit
 
 ## Run directory
 
+**`run=` overrides `LATEST`:** parse **`run=`** from the **entire** user message first (including after a slash command); Windows `\` paths OK — skill § **Parsing `run=`**. If `run=` is present, **never** use `LATEST` for resolution.
+
 Resolve the run folder **exactly** as in `.cursor/skills/team-orchestrator/SKILL.md` § **Run directory** (`run=` or first line of `.cursor/tasks/runs/LATEST`).
 
 **Before writing `10-analyst.md`:** if the path came from **`LATEST`** (not `run=`), apply **§ Same run vs new run** in that skill. If the **current** request is a **different** audit/topic than `00-brief.md` in that folder, **do not** overwrite `10-analyst.md` there — **create a new** run folder (new slug and/or next `seq`), new `00-brief.md` from this chat, set `LATEST` to it, then write `10-analyst.md` in the **new** folder. Use `new_run` / `new_run=1` in the message to force a new folder without debating affinity.

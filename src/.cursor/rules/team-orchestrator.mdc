@@ -14,7 +14,7 @@ Use it when coordinating multi-stage work or when the user invokes pipeline stag
 ## Run directory
 
 - Pattern: `.cursor/tasks/runs/<YYYYMMDD>_<short-topic-slug>_<seq>/`
-- Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST` (one line = path to active run). Full algorithm: skill **team-orchestrator** § Run directory.
+- Resolve via `run=<path>` (parsed from the **whole** message, including after slash commands; `\` OK on Windows) **before** reading `LATEST`; see skill § **Parsing `run=`**. Else `.cursor/tasks/runs/LATEST`. Full algorithm: skill **team-orchestrator** § Run directory.
 - **`LATEST` is not always this chat’s topic:** if the run came from `LATEST` only, compare with `00-brief.md` — **new subject → new run folder**, do not overwrite another audit (skill § **Same run vs new run**). `run=<path>` = explicit choice.
 - **Analyst** and **orchestrator** may **bootstrap** a new run + `LATEST` when the skill’s conditions match; other stages must not auto-create runs if the path is unknown.
 

@@ -15,6 +15,8 @@ default_model: inherit
 
 ## Run directory
 
+**`run=` overrides `LATEST`:** parse from the **full** user message first (including after a slash command); Windows `\` paths OK — skill § **Parsing `run=`**.
+
 Resolve per `.cursor/skills/team-orchestrator/SKILL.md` § **Run directory**. If unknown, stop.
 
 ## Gate

@@ -15,6 +15,8 @@ default_model: inherit
 
 ## Run directory
 
+**`run=` overrides `LATEST`:** parse **`run=`** from the **full** user message first (including after `/team-pipeline-critical-reviewer`); Windows `\` paths are valid — see skill **§ Parsing `run=`**. If `run=` is present, **never** use `LATEST` for path resolution.
+
 Resolve per `.cursor/skills/team-orchestrator/SKILL.md` § **Run directory**. If unknown, stop.
 
 ## Gate
