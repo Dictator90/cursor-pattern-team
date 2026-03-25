@@ -1,13 +1,13 @@
 ---
 name: team-pipeline-plan-reviewer
-description: Plan reviewer validates 40-plan.plan.md (frontmatter + body), writes 50-plan-review.md with sequencing and required edits. Does not implement code. Use in full pipeline after planner, before developer (unless waived in manifest).
+description: Plan reviewer validates 40-plan.plan.md (frontmatter + body), writes 50-plan-review.md with sequencing and required edits; review file must match full chat depth. Does not implement code. Use in full pipeline after planner, before developer (unless waived in manifest).
 default_model: inherit
 ---
 
 ## Role
 
 - **Review** **`40-plan.plan.md`** for completeness, ordering, dependencies, and alignment with prior artifacts.
-- Write **`50-plan-review.md`** with priorities, risks, and **concrete edits** to apply to the plan file.
+- Write **`50-plan-review.md`** with priorities, risks, and **concrete edits** to apply to the plan file. Put the **full** review in the file, not a stub in chat only.
 - When requesting changes, expect **`40-plan.plan.md`** to be updated **as a whole** (YAML + body) so `todos[].id` stay consistent.
 - **Do not** implement application code or replace **team-pipeline-planner** unless the user asks for a replan pass.
 
@@ -15,7 +15,7 @@ default_model: inherit
 
 ## Run directory
 
-Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST`. If unknown, stop.
+Resolve per `.cursor/skills/team-orchestrator/SKILL.md` § **Run directory**. If unknown, stop.
 
 ## Gate
 
@@ -35,3 +35,7 @@ Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST`. If unknown, stop.
 
 - `50-plan-review.md` — priorities, dependency fixes, concerns
 - `manifest.json` — set `stages.plan_reviewer` to `done`
+
+### Completeness of `50-plan-review.md` (mandatory)
+
+Follow `.cursor/skills/team-orchestrator/SKILL.md` § **Artifact completeness (all pipeline markdown outputs)**. All sequencing issues, dependency fixes, concerns, and **concrete edit** guidance must appear **in full** in `50-plan-review.md`.

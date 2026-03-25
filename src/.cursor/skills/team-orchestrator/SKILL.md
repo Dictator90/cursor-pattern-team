@@ -15,11 +15,75 @@ The Cursor skill id and folder are **`team-orchestrator`**, but this file is the
 
 Paths below are **relative to the active run directory** unless noted.
 
+## Workspace root (critical)
+
+All paths that start with **`.cursor/`** (e.g. `.cursor/tasks/runs/LATEST`, `.cursor/tasks/templates/00-brief.md`, `.cursor/skills/team-orchestrator/SKILL.md`) are **relative to the Cursor workspace root** — the **folder opened as the project** in this chat — **not** relative to:
+
+- the user’s **global** Cursor config (`~/.cursor`, `%USERPROFILE%\.cursor`, `C:\Users\…\.cursor`), where **agent `.md` files** may live;
+- the on-disk path to a copied agent definition.
+
+**Implications:**
+
+- If `.cursor/tasks/` does **not** exist under the **workspace root**, this project has **no** in-repo pipeline tree: **bootstrap** must **create** `<workspace>/.cursor/tasks/runs/` (and siblings as needed), **or** the user must copy the packaged `.cursor/` (tasks, skills, rules) into the opened project. Do **not** expect `tasks/` to appear next to global `agents/`.
+- **`run=`** may be an **absolute** path (Windows `C:\…`, UNC, WSL `/mnt/…`) so the run folder is unambiguous when the workspace is multi-root or unusual.
+- If the skill file is not present under the workspace `.cursor/skills/`, still follow this document’s rules (agents may load from global skills); **artifact I/O** always targets the **workspace** unless the user supplies an absolute `run=`.
+
 ## Run directory
 
-1. If the user message contains `run=<path>`, use that path (absolute or repo-relative).
-2. Else read `.cursor/tasks/runs/LATEST` — **first line** is the active run path.
-3. If still unknown: stop; user must create a run per `.cursor/tasks/README.md` or pass `run=`.
+Resolve the **active run folder** (the directory that contains `00-brief.md`, `10-analyst.md`, …):
+
+1. If the user message contains `run=<path>`, use that path (absolute or repo-relative). Trim whitespace. **No affinity check** against `00-brief.md` is required — the user chose this folder; you may update artifacts there (including overwriting prior stage outputs for that run).
+2. Else read `.cursor/tasks/runs/LATEST` — **first line** is the **candidate** run path (absolute or repo-relative). Skip leading empty lines if needed. Then apply **§ Same run vs new run** below before treating that folder as final.
+3. If still unknown:
+   - **Bootstrap** (next subsection) **if** you are **`team-pipeline-orchestrator`** or **`team-pipeline-analyst`** and the **Bootstrap conditions** are satisfied — then the new folder becomes the active run.
+   - **Else** **stop** and tell the user exactly what to do (do not guess a path):
+     - **Create a run** per `.cursor/tasks/README.md` (folder `.cursor/tasks/runs/<YYYYMMDD>_<slug>_<seq>/`, copy templates, fill `00-brief.md`).
+     - Write **one line** — the path to that run folder — into `.cursor/tasks/runs/LATEST`.
+     - **Or** re-invoke the stage with `run=<path-to-run-folder>` in the message.
+   - **Other stage agents** (architect, planner, …): if the run is still unknown after steps 1–2, **always** stop with those recovery steps — **do not** bootstrap a new run.
+
+**Not a run path:** `.cursor/plans/*.md` (and similar Cursor **Plan** UI exports) live **outside** `tasks/runs/`. Do **not** use their folder or filename to infer `LATEST` or substitute for `run=`. You may still **read** such a file as user-provided context once a run directory is resolved.
+
+### Same run vs new run (do not clobber another audit)
+
+`LATEST` remembers the **last** run; a **new chat** or **new task** must **not** automatically reuse it if the **subject** differs.
+
+**When this applies:** the run path came **only** from step 2 (`LATEST`), **not** from `run=`. If the message includes `new_run=1` or `new_run` or explicit “новый прогон / new pipeline run / separate run”, treat the request as **new** (skip matching; create a new folder).
+
+**Check (after resolving a folder from `LATEST`):**
+
+1. Open that folder’s **`00-brief.md`** (and optionally **`manifest.json`**: `topic_slug`, `run_id`, `notes`).
+2. Compare **problem scope** in the brief with **this message**: product/module/audit target, client, feature area, and stated goal.
+3. **Same initiative** — safe to reuse: user clearly **continues** the same work (refine analysis, “обнови `10-analyst`”, same module and goal as the brief), or the brief and request **obviously** describe the same engagement.
+4. **Different initiative** — **do not** write stage artifacts into that folder. **Analyst** or **orchestrator** must **create a new** run directory (new `short-topic-slug` and/or next `seq` under `.cursor/tasks/runs/`), fill a **fresh** `00-brief.md` from **this** chat, set **`LATEST`** to the **new** path, then continue. **Leave the old run folder unchanged** (historical record).
+5. **Ambiguous:** prefer **new run** over overwriting an unrelated audit (avoids data loss). Optionally ask one short confirmation; if no reply assumed, default to **new run**.
+
+**Other stages** (architect, planner, …) when using `LATEST`: if after reading `00-brief.md` the task **clearly** does not match the brief, **stop** — do not write; tell the user to pass `run=<correct-folder>` or run **analyst** / **orchestrator** to create a new run and fix `LATEST`.
+
+**Explicit `run=`** overrides this subsection for path choice (user responsibility).
+
+### Bootstrap (create run + `LATEST`)
+
+**Who:** only **`team-pipeline-orchestrator`** or **`team-pipeline-analyst`**.
+
+**When (any of):**
+- The message includes a machine flag: `bootstrap_run`, `ensure_run=1`, `create_run=1`, or **`new_run` / `new_run=1`** (always a **new** folder; update `LATEST`).
+- **§ Same run vs new run** requires a **new** folder (mismatch or ambiguous vs `LATEST` run’s brief).
+- The user clearly asks to **start a new pipeline run**, **create a run folder**, or equivalent.
+- The user invoked this analyst/orchestrator with **enough substance** to fill `00-brief.md` (problem statement, goal, constraints) and intent is clearly to produce pipeline artifacts — not a one-line trivia question.
+
+**When not:** intent is ambiguous, the user forbids creating files, or you would have to invent a topic with no basis in the message — then **stop** with manual recovery steps only.
+
+**Procedure** (atomic; then continue the same invocation with the new path):
+1. Ensure `.cursor/tasks/runs/` exists (create the directory if missing).
+2. Choose `YYYYMMDD` (today, UTC or local — be consistent in one run), `short-topic-slug` (lowercase, hyphens, from the task title), and `seq` (`01`, or next free by listing `runs/` — see `.cursor/tasks/README.md`).
+3. Create `.cursor/tasks/runs/<YYYYMMDD>_<slug>_<seq>/`.
+4. Copy `.cursor/tasks/templates/00-brief.md` into the new folder; **edit** it with the user’s problem/context (and optional pointers to `.cursor/plans/…` or other files — by path, not as run root).
+5. Copy `.cursor/tasks/templates/manifest.example.json` → `manifest.json` in that folder (rename); set `"mode": "full"` or `"fast"` if the user specified it, else default **fast** unless the conversation already chose full.
+6. Write `.cursor/tasks/runs/LATEST` — **exactly one non-empty line**: repo-relative path to the new folder (same path you will use as `run=`).
+7. In the reply, **briefly state** what was created (folder path + that `LATEST` was set). Do **not** delete or overwrite sibling run folders.
+
+**Allowed files/dirs to create during bootstrap:** the new run directory, `00-brief.md`, `manifest.json` inside it, and `.cursor/tasks/runs/LATEST` (and `runs/.gitkeep` is optional). Do not create spurious files outside this layout.
 
 ## Modes
 
@@ -87,14 +151,25 @@ Use **`todos[].id` in frontmatter** aligned with these task ids (or a clear mapp
 
 Only the **user** can turn on Chat **Plan mode**. The pipeline’s source of truth is still **`40-plan.plan.md`** in the run directory, filled to this spec (whether or not a draft was first agreed in Plan mode).
 
+## Artifact completeness (all pipeline markdown outputs)
+
+Every stage that writes a **markdown file** in the run folder (`10-analyst.md` … `70-code-review.md`) must treat that file as the **canonical** record for downstream stages and humans.
+
+- **Same depth as chat:** Put the **full** narrative you would give in the chat (sections, tables, numbered findings, rationale) **into the file** for this invocation. Do **not** leave the file as a stub or short outline while the chat holds the long version.
+- **After writing:** The chat reply may be a short pointer or executive summary; the file must already be complete.
+- **Exception:** Only if the user **explicitly** asks for a deliberately brief artifact.
+- **Planner (`40-plan.plan.md`):** The **YAML frontmatter plus the full markdown body** (milestones, task detail, assumptions, verification checklist) must reflect the complete plan — not frontmatter-only or an empty/minimal body while detail stays in chat.
+- **Developer:** **`60-implementation-notes.md`** must include the same level of detail as the chat (files touched, key decisions, commands run, test results, caveats) — not a one-line “done” note.
+
 ## Quality bar (per stage, concise)
 
-- **Analyst (`10-analyst.md`):** Use cases / user-visible behavior, acceptance criteria, open questions; no architecture decisions or implementation.
-- **Architect (`20-architecture.md`):** Boundaries, interfaces, data flow, risks, alignment with existing codebase (read-only on product code for design).
-- **Critical reviewer (`30-critical-review.md`):** Blockers, inconsistencies between analyst + architecture, go/no-go signals.
-- **Plan reviewer (`50-plan-review.md`):** Sequencing, missing deps, scope creep vs `40-plan.plan.md`; actionable edits.
-- **Developer:** Implement against `40-plan.plan.md` (+ `50-plan-review.md` in full); minimal tests on critical paths; record commands/tests in `60-implementation-notes.md`.
-- **Code reviewer (`70-code-review.md`):** Bugs, security, regressions, test gaps vs stated criteria.
+- **Analyst (`10-analyst.md`):** Use cases / user-visible behavior, acceptance criteria, open questions; no architecture decisions or implementation. Must satisfy **Artifact completeness** above.
+- **Architect (`20-architecture.md`):** Boundaries, interfaces, data flow, risks, alignment with existing codebase (read-only on product code for design). Must satisfy **Artifact completeness** above.
+- **Critical reviewer (`30-critical-review.md`):** Blockers, inconsistencies between analyst + architecture, go/no-go signals. Must satisfy **Artifact completeness** above.
+- **Planner (`40-plan.plan.md`):** Full plan in file per SKILL **Planner artifact** + **Artifact completeness** above.
+- **Plan reviewer (`50-plan-review.md`):** Sequencing, missing deps, scope creep vs `40-plan.plan.md`; actionable edits. Must satisfy **Artifact completeness** above.
+- **Developer:** Implement against `40-plan.plan.md` (+ `50-plan-review.md` in full); minimal tests on critical paths; **`60-implementation-notes.md`** per **Artifact completeness** above.
+- **Code reviewer (`70-code-review.md`):** Bugs, security, regressions, test gaps vs stated criteria. Must satisfy **Artifact completeness** above.
 
 ## `manifest.json`
 

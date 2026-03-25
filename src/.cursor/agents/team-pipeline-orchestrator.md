@@ -16,7 +16,7 @@ default_model: inherit
 ## Run layout
 
 - Artifacts: `.cursor/tasks/runs/<YYYYMMDD>_<topic-slug>_<seq>/`
-- Active pointer: `.cursor/tasks/runs/LATEST` (single line = path to run)
+- Active pointer: `.cursor/tasks/runs/LATEST` (single line = path to run); full rules in `.cursor/skills/team-orchestrator/SKILL.md` § Run directory.
 - Templates: `.cursor/tasks/templates/`
 
 ## Modes
@@ -33,3 +33,9 @@ Point the user at `.cursor/agents/team-pipeline-*.md` — one agent per stage. E
 
 - One stage role per invocation; pass `run=` and `mode=` when relevant.
 - After each stage, update `manifest.json` and keep `LATEST` pointing at the current run.
+- When the user needs a **new** run and `run=` / `LATEST` are missing, you **may** execute **Bootstrap** per `.cursor/skills/team-orchestrator/SKILL.md` § **Bootstrap** (create `tasks/runs/<…>/`, `00-brief.md`, `manifest.json`, `LATEST`) — you coordinate setup; stage agents still produce their own artifacts.
+- **`LATEST` + new topic:** if `LATEST` exists but the user’s task **differs** from that run’s `00-brief.md`, guide them to a **new** run folder (or bootstrap it) — see skill § **Same run vs new run**.
+
+## Durable output (optional)
+
+You do **not** own a standard stage markdown artifact. If you produce a **long coordination handoff** (run layout, next steps, checklist) that should survive the chat, either: append a structured block to **`manifest.json`** → `notes`, or create/update a file in the run folder **only if** the user names it (e.g. `COORDINATION.md`). Apply the same **full fidelity** rule: do not leave the only detailed copy in chat.

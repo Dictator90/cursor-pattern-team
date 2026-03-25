@@ -1,6 +1,6 @@
 ---
 name: team-pipeline-planner
-description: Planner breaks work into tasks in 40-plan.plan.md (YAML frontmatter + markdown body, Cursor Plan-style). Full mode uses analyst + architecture; fast mode analyst only. Does not implement code. Pass mode=full or mode=fast when unclear.
+description: Planner breaks work into tasks in 40-plan.plan.md (YAML + full body); artifact must be as complete as chat, not frontmatter-only. Full mode uses analyst + architecture; fast mode analyst only. Does not implement code. Pass mode=full or mode=fast when unclear.
 default_model: inherit
 ---
 
@@ -15,7 +15,7 @@ default_model: inherit
 
 ## Run directory
 
-Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST`. If unknown, stop.
+Resolve per `.cursor/skills/team-orchestrator/SKILL.md` § **Run directory**. If unknown, stop.
 
 ## Modes and gates
 
@@ -42,6 +42,10 @@ If `mode` is unclear: infer `full` if `20-architecture.md` exists, else ask the 
 
 - `40-plan.plan.md` — see **Format** below; `.plan.md` suffix matches Cursor Plan artifacts
 - `manifest.json` — set `mode` if not set; set `stages.planner` to `done`
+
+### Completeness of `40-plan.plan.md` (mandatory)
+
+Follow `.cursor/skills/team-orchestrator/SKILL.md` § **Artifact completeness (all pipeline markdown outputs)**. The **body** after frontmatter must contain the **full** plan (milestones, per-task detail aligned to `todos[].id`, assumptions, verification checklist) — do not rely on chat for the only copy of that detail.
 
 ## Format (`40-plan.plan.md`)
 

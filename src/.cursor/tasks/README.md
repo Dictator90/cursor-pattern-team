@@ -4,6 +4,8 @@
 
 This directory stores **versioned run folders** for the team pipeline. Nothing here overwrites a previous run: each run gets a new directory.
 
+**Workspace:** In Cursor, these paths live under the **opened project** (workspace root) as `.cursor/tasks/…`, not under the user’s global `~/.cursor` folder where agent definitions may be installed. Copy this tree into the project you are working on.
+
 ## Directory layout
 
 - `templates/` — static templates copied or referenced when starting a run (do not overwrite these with automation). Index: [templates/README.md](templates/README.md).
@@ -17,18 +19,20 @@ This directory stores **versioned run folders** for the team pipeline. Nothing h
 | File | Produced by | Purpose |
 | ---- | ----------- | -------- |
 | `00-brief.md` | User / orchestrator | Problem statement, constraints, links |
-| `10-analyst.md` | analyst | Requirements, cases, acceptance criteria |
-| `20-architecture.md` | architect | Design, boundaries, risks (full mode) |
-| `30-critical-review.md` | critical-reviewer | Blockers, questions, go/no-go (full mode) |
-| `40-plan.plan.md` | planner | Cursor Plan-style file: YAML frontmatter + body; task breakdown, dependencies |
-| `50-plan-review.md` | plan_reviewer | Plan review notes (full mode) |
-| `60-implementation-notes.md` | developer | What changed, tests/commands run |
-| `70-code-review.md` | code_reviewer | Review findings |
+| `10-analyst.md` | analyst | Requirements, cases, acceptance criteria; **full** content same depth as the analyst’s narrative in chat (not an abbreviated file-only summary) |
+| `20-architecture.md` | architect | Design, boundaries, risks (full mode); **full** narrative in file, same as chat |
+| `30-critical-review.md` | critical-reviewer | Blockers, questions, go/no-go (full mode); **full** review in file |
+| `40-plan.plan.md` | planner | YAML frontmatter + **full** body (not frontmatter-only); task breakdown, dependencies |
+| `50-plan-review.md` | plan_reviewer | Plan review notes (full mode); **full** edits and concerns in file |
+| `60-implementation-notes.md` | developer | What changed, tests/commands run — **full** log, same depth as chat |
+| `70-code-review.md` | code_reviewer | Review findings — **full** severity/location/fix guidance in file |
 | `manifest.json` | each stage updates | Run metadata and stage status |
 
-See `.cursor/skills/team-orchestrator/SKILL.md` for strict read/write contracts and `full` vs `fast` mode.
+See `.cursor/skills/team-orchestrator/SKILL.md` for strict read/write contracts, `full` vs `fast` mode, and **Artifact completeness (all pipeline markdown outputs)**.
 
 ## Starting a new run
+
+`LATEST` points at the **previous** active run. For a **new** topic or audit, create a **new** folder and update `LATEST` (or pass `run=<new-folder>`) — do not reuse `LATEST` blindly in a new chat if the brief does not match. See skill **team-orchestrator** § **Same run vs new run**. Optional: `new_run=1` in chat to force a new run.
 
 1. Choose `YYYYMMDD`, `short-topic-slug` (lowercase, hyphens).
 2. List `runs/` for matching `YYYYMMDD_<slug>_*` and set `<seq>` to next two-digit suffix.

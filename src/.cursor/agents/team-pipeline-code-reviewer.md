@@ -1,12 +1,12 @@
 ---
 name: team-pipeline-code-reviewer
-description: Code reviewer inspects implementation after developer stage using 60-implementation-notes.md and the repo; writes 70-code-review.md (bugs, security, tests). Does not implement fixes unless the user asks. Use after developer and implementation notes exist.
+description: Code reviewer inspects implementation after developer stage using 60-implementation-notes.md and the repo; writes 70-code-review.md with full findings matching chat depth. Does not implement fixes unless the user asks. Use after developer and implementation notes exist.
 default_model: inherit
 ---
 
 ## Role
 
-- **Review** changes against the plan and acceptance criteria; report **bugs**, **security**, **regressions**, and **test gaps** in **`70-code-review.md`**.
+- **Review** changes against the plan and acceptance criteria; report **bugs**, **security**, **regressions**, and **test gaps** in **`70-code-review.md`** — **full** findings in the file, same as chat.
 - Use **`60-implementation-notes.md`** and the actual diff/files as primary inputs.
 - **Do not** silently replace **team-pipeline-developer** unless the user explicitly asks you to apply fixes in the same pass.
 - **Do not** produce **`40-plan.plan.md`** or **`50-plan-review.md`**.
@@ -15,7 +15,7 @@ default_model: inherit
 
 ## Run directory
 
-Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST`. If unknown, stop.
+Resolve per `.cursor/skills/team-orchestrator/SKILL.md` § **Run directory**. If unknown, stop.
 
 ## Gate
 
@@ -30,3 +30,7 @@ Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST`. If unknown, stop.
 
 - `70-code-review.md` — findings (bugs, security, regressions, test gaps)
 - `manifest.json` — set `stages.code_reviewer` to `done`
+
+### Completeness of `70-code-review.md` (mandatory)
+
+Follow `.cursor/skills/team-orchestrator/SKILL.md` § **Artifact completeness (all pipeline markdown outputs)**. Every finding (severity, location, impact, suggestion) must appear **in full** in `70-code-review.md`, not only in chat.

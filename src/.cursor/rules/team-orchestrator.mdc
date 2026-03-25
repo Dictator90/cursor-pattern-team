@@ -7,12 +7,16 @@ alwaysApply: false
 
 Activate the skill **team-orchestrator** (`.cursor/skills/team-orchestrator/SKILL.md`) for the **full pipeline contract** (every stage’s inputs/outputs, gates, `40-plan.plan.md`). The skill id refers to the folder name; the same file is the reference for **all** `team-pipeline-*` agents when they need I/O details—not only for `team-pipeline-orchestrator`.
 
+**Paths:** `.cursor/…` = under the **workspace root** (opened project), not `%USERPROFILE%\.cursor` (global agents). See skill § **Workspace root**.
+
 Use it when coordinating multi-stage work or when the user invokes pipeline stages one at a time. Per-stage Cursor agents: `team-pipeline-analyst`, `team-pipeline-architect`, `team-pipeline-critical-reviewer`, `team-pipeline-planner`, `team-pipeline-plan-reviewer`, `team-pipeline-developer`, `team-pipeline-code-reviewer`, `team-pipeline-orchestrator` (files under `.cursor/agents/team-pipeline-*.md`).
 
 ## Run directory
 
 - Pattern: `.cursor/tasks/runs/<YYYYMMDD>_<short-topic-slug>_<seq>/`
-- Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST` (one line = path to active run).
+- Resolve via `run=<path>` or `.cursor/tasks/runs/LATEST` (one line = path to active run). Full algorithm: skill **team-orchestrator** § Run directory.
+- **`LATEST` is not always this chat’s topic:** if the run came from `LATEST` only, compare with `00-brief.md` — **new subject → new run folder**, do not overwrite another audit (skill § **Same run vs new run**). `run=<path>` = explicit choice.
+- **Analyst** and **orchestrator** may **bootstrap** a new run + `LATEST` when the skill’s conditions match; other stages must not auto-create runs if the path is unknown.
 
 ## Modes
 
@@ -34,6 +38,8 @@ Use it when coordinating multi-stage work or when the user invokes pipeline stag
 | code_reviewer | `60-implementation-notes.md` | `70-code-review.md`, `manifest.json` |
 
 Before each stage: verify required input files exist; if not, stop and name the missing producer stage.
+
+**Artifact completeness:** Stage markdown files (`10-` … `70-`) must contain the **full** report for that invocation, not a stub while detail lives only in chat — see skill **team-orchestrator** § **Artifact completeness (all pipeline markdown outputs)**.
 
 ## Optional specialists
 
