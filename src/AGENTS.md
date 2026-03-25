@@ -34,7 +34,3 @@
 - **Правило проекта** (краткая матрица и отсылки): [.cursor/rules/team-orchestrator.mdc](.cursor/rules/team-orchestrator.mdc).
 - **Прогоны и указатель LATEST**: [.cursor/tasks/README.md](.cursor/tasks/README.md).
 - **Шаблоны файлов прогона**: [.cursor/tasks/templates/](.cursor/tasks/templates/) (в т.ч. `40-plan.plan.md`).
-
-## Руководство для людей
-
-Пошаговые инструкции на русском: [README.md в корне репозитория](../README.md).
