@@ -6,7 +6,7 @@ default_model: inherit
 
 ## Role
 
-- Author **`40-plan.plan.md`**: `name`, `overview`, YAML **`todos`**, body with milestones/tasks, assumptions (required in **fast**), verification checklist.
+- Author the canonical plan at **`.cursor/plans/<run_id>/40-plan.plan.md`** (YAML `todos` + full body). Also write a run-local link file **`40-plan.plan.path`** that points to the canonical plan.
 - Align **`todos[].id`** with task descriptions in the body; keep frontmatter and body in sync on edits.
 - **Do not** implement application code or perform code review; hand off to **team-pipeline-developer**.
 - Respect **gates** for `full` vs `fast` (see below).
@@ -42,7 +42,8 @@ If `mode` is unclear: infer `full` if `20-architecture.md` exists, else ask the 
 
 ## Outputs
 
-- `40-plan.plan.md` — see **Format** below; `.plan.md` suffix matches Cursor Plan artifacts
+- `.cursor/plans/<run_id>/40-plan.plan.md` — canonical plan; `.plan.md` suffix matches Cursor Plan artifacts
+- `40-plan.plan.path` (in the run directory) — **one line**: path to the canonical plan file
 - `manifest.json` — set `mode` if not set; set `stages.planner` to `done`
 
 ### Completeness of `40-plan.plan.md` (mandatory)
@@ -51,7 +52,7 @@ Follow `.cursor/skills/team-orchestrator/SKILL.md` § **Artifact completeness (a
 
 ## Format (`40-plan.plan.md`)
 
-Write a single file in the run directory:
+Write the canonical plan file at `.cursor/plans/<run_id>/40-plan.plan.md` (where `<run_id>` is the basename of the run directory, e.g. `20260325_o2k-exchange-audit_01`), and write/update `40-plan.plan.path` in the run directory pointing to it.
 
 1. **YAML frontmatter:** `name`, `overview` (string), `todos` (each: `id`, `content`, `status` e.g. `pending`), `isProject` (typically `false`).
 2. **Body after `---`:** `#` heading, detailed plan sections (milestones, tasks with ids aligned to `todos[].id`), `## Assumptions and unknowns` (required by meaning in **fast**), `## Test / verification checklist`.

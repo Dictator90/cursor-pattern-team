@@ -21,11 +21,12 @@ Resolve per `.cursor/skills/team-orchestrator/SKILL.md` § **Run directory**. If
 
 ## Gate
 
-- **`40-plan.plan.md`** must exist. If missing: stop — run **team-pipeline-planner** first.
+- **`40-plan.plan.path`** must exist and point to an existing canonical plan `.cursor/plans/<run_id>/40-plan.plan.md`. If missing: stop — run **team-pipeline-planner** first.
 
 ## Inputs
 
-- `40-plan.plan.md`
+- `40-plan.plan.path` (resolve canonical plan path from it)
+- Canonical plan at `.cursor/plans/<run_id>/40-plan.plan.md`
 
 ## Policy
 

@@ -116,20 +116,32 @@ Resolve the **active run folder** (the directory that contains `00-brief.md`, `1
 | analyst | `00-brief.md` | `10-analyst.md`, `manifest.json` |
 | architect | `10-analyst.md` | `20-architecture.md`, `manifest.json` |
 | critical-reviewer | `10-analyst.md`, `20-architecture.md` | `30-critical-review.md`, `manifest.json` |
-| planner (full) | `10-analyst.md`, `20-architecture.md`, optional `30-critical-review.md` | `40-plan.plan.md`, `manifest.json` |
-| planner (fast) | `10-analyst.md` | `40-plan.plan.md`, `manifest.json` |
-| plan_reviewer | `40-plan.plan.md` | `50-plan-review.md`, `manifest.json` |
-| developer (full) | `40-plan.plan.md`, `50-plan-review.md` | code, `60-implementation-notes.md`, `manifest.json` |
-| developer (fast) | `40-plan.plan.md` | code, `60-implementation-notes.md`, `manifest.json` |
+| planner (full) | `10-analyst.md`, `20-architecture.md`, optional `30-critical-review.md` | `.cursor/plans/<run_id>/40-plan.plan.md` + run link file `40-plan.plan.path`, `manifest.json` |
+| planner (fast) | `10-analyst.md` | `.cursor/plans/<run_id>/40-plan.plan.md` + run link file `40-plan.plan.path`, `manifest.json` |
+| plan_reviewer | `.cursor/plans/<run_id>/40-plan.plan.md` (via `40-plan.plan.path`) | `50-plan-review.md`, `manifest.json` |
+| developer (full) | `.cursor/plans/<run_id>/40-plan.plan.md` (via `40-plan.plan.path`), `50-plan-review.md` | code, `60-implementation-notes.md`, update plan `todos[].status`, `manifest.json` |
+| developer (fast) | `.cursor/plans/<run_id>/40-plan.plan.md` (via `40-plan.plan.path`) | code, `60-implementation-notes.md`, update plan `todos[].status`, `manifest.json` |
 | code_reviewer | `60-implementation-notes.md` (+ repo as needed) | `70-code-review.md`, `manifest.json` |
 
 Before each stage: verify **required inputs** exist; if not, stop and name the missing producer stage.
 
 Optional **Task** subagents from project rules may extend the chain; keep new artifacts in the **same run folder**.
 
-## Planner artifact: `40-plan.plan.md`
+## Planner artifact: `.cursor/plans/<run_id>/40-plan.plan.md` (canonical)
 
-Use the **`.plan.md` suffix** so the file matches Cursor Plan-style artifacts (same idea as plans under `.cursor/plans/`).
+The canonical plan lives under:
+
+- `.cursor/plans/<run_id>/40-plan.plan.md`
+
+Where:
+
+- `<run_id>` = the **run folder name**: `<YYYYMMDD>_<short-topic-slug>_<seq>` (basename of the resolved `run=` directory).
+
+Inside the run directory, the planner must also create/update a **link file**:
+
+- `40-plan.plan.path` — **one line**: repo-relative (or absolute) path to the canonical plan file above.
+
+This makes the run folder self-contained for stage gating without duplicating the plan content in two places.
 
 ### File shape
 
@@ -163,7 +175,7 @@ Use **`todos[].id` in frontmatter** aligned with these task ids (or a clear mapp
 
 ### Plan mode (Cursor UI)
 
-Only the **user** can turn on Chat **Plan mode**. The pipeline’s source of truth is still **`40-plan.plan.md`** in the run directory, filled to this spec (whether or not a draft was first agreed in Plan mode).
+Only the **user** can turn on Chat **Plan mode**. The pipeline’s source of truth is still the canonical plan file **`.cursor/plans/<run_id>/40-plan.plan.md`** (whether or not a draft was first agreed in Plan mode).
 
 ## Artifact completeness (all pipeline markdown outputs)
 
@@ -172,7 +184,7 @@ Every stage that writes a **markdown file** in the run folder (`10-analyst.md` �
 - **Same depth as chat:** Put the **full** narrative you would give in the chat (sections, tables, numbered findings, rationale) **into the file** for this invocation. Do **not** leave the file as a stub or short outline while the chat holds the long version.
 - **After writing:** The chat reply may be a short pointer or executive summary; the file must already be complete.
 - **Exception:** Only if the user **explicitly** asks for a deliberately brief artifact.
-- **Planner (`40-plan.plan.md`):** The **YAML frontmatter plus the full markdown body** (milestones, task detail, assumptions, verification checklist) must reflect the complete plan — not frontmatter-only or an empty/minimal body while detail stays in chat.
+- **Planner (`.cursor/plans/<run_id>/40-plan.plan.md`):** The **YAML frontmatter plus the full markdown body** (milestones, task detail, assumptions, verification checklist) must reflect the complete plan — not frontmatter-only or an empty/minimal body while detail stays in chat.
 - **Developer:** **`60-implementation-notes.md`** must include the same level of detail as the chat (files touched, key decisions, commands run, test results, caveats) — not a one-line “done” note.
 
 ## Quality bar (per stage, concise)
@@ -193,3 +205,34 @@ Each stage sets its `stages.<role>` to `done` and preserves other keys. Bootstra
 
 - One **role per invocation**; pass `run=` and `mode=` when relevant.
 - After creating or switching runs, set `.cursor/tasks/runs/LATEST` to the run path (single line).
+
+## Safety: `.cursor/plans/<run_id>/` is append/update-only
+
+For plan directories under `.cursor/plans/<run_id>/`:
+
+- **Do not delete** any files in `.cursor/plans/<run_id>/`.
+- **Do not fully clear** a plan file (e.g. replacing the entire file with empty content).
+- Allowed edits:
+  - **Planner** may create and fully update `.cursor/plans/<run_id>/40-plan.plan.md`.
+  - **Developer** may update **only** `todos[].status` (and other minimal bookkeeping agreed in the plan) while implementing.
+  - Other stages treat `.cursor/plans/<run_id>/` as **read-only**.
+
+Only override these safety rules if the **user explicitly asks** to delete/clear, or the stage’s own contract requires rewriting its canonical artifact.
+
+## Safety: `.cursor/tasks/runs/<run_id>/` is historical record (no deletes)
+
+For run directories under `.cursor/tasks/runs/<run_id>/`:
+
+- **Do not delete** files or folders inside a run directory (including the run directory itself).
+- **Do not fully clear** stage artifacts (e.g. replacing an artifact with empty content) as a shortcut.
+- Allowed updates (overwrite-in-place) are limited to **the current stage’s own outputs** as defined in the artifact table for this contract:
+  - analyst → `10-analyst.md`, `manifest.json`
+  - architect → `20-architecture.md`, `manifest.json`
+  - critical-reviewer → `30-critical-review.md`, `manifest.json`
+  - planner → `40-plan.plan.path`, `manifest.json` (canonical plan lives in `.cursor/plans/...`)
+  - plan_reviewer → `50-plan-review.md`, `manifest.json`
+  - developer → `60-implementation-notes.md`, `manifest.json`
+  - code_reviewer → `70-code-review.md`, `manifest.json`
+- If a stage needs to “redo” work for a **new topic**, do **not** mutate the old run: create a **new** run folder (see § Same run vs new run / bootstrap).
+
+Only override these safety rules if the **user explicitly asks** to delete/clear, and the request is scoped to the exact paths to be removed.

@@ -6,10 +6,12 @@ default_model: inherit
 
 ## Role
 
-- **Implement** the product changes described in **`40-plan.plan.md`** (and apply **`50-plan-review.md`** feedback in **full** mode).
+- **Implement** the product changes described in the canonical plan **`.cursor/plans/<run_id>/40-plan.plan.md`** (resolved via the run link file `40-plan.plan.path`), and apply **`50-plan-review.md`** feedback in **full** mode.
 - Add **targeted tests** where the plan or codebase warrants them; run checks and record commands in **`60-implementation-notes.md`** — notes must be **complete**, not a one-liner while the chat has the real log.
 - **Do not** rewrite **`10-analyst.md`** / **`20-architecture.md`** unless the user explicitly expands scope to those stages.
 - **Do not** perform final **code review** output; that is **team-pipeline-code-reviewer** → **`70-code-review.md`**.
+
+While implementing, update **`todos[].status`** in the canonical plan (e.g. `in_progress`, `completed`, `blocked`) so the plan stays current.
 
 **Pipeline contract** (inputs/outputs for every stage, `full` vs `fast`, `40-plan.plan.md` format): `.cursor/skills/team-orchestrator/SKILL.md`. Skill id `team-orchestrator` is the folder name; that document defines **all pipeline stages**, not only the `team-pipeline-orchestrator` agent. Paths are relative to the **run directory**.
 
@@ -21,7 +23,7 @@ Resolve per `.cursor/skills/team-orchestrator/SKILL.md` § **Run directory**. If
 
 ## Gate
 
-- **`40-plan.plan.md`** must exist. If missing: stop — run **team-pipeline-planner** first.
+- **`40-plan.plan.path`** must exist and point to a canonical plan `.cursor/plans/<run_id>/40-plan.plan.md`. If missing: stop — run **team-pipeline-planner** first.
 
 ### `full` mode (when `manifest.json` has `"mode": "full"` or `50-plan-review.md` exists / architecture path was used)
 
@@ -35,13 +37,15 @@ If mode is ambiguous: if `50-plan-review.md` exists, treat as full inputs; if on
 
 ## Inputs
 
-- `40-plan.plan.md`
+- `40-plan.plan.path` (resolve canonical plan from it)
+- Canonical plan at `.cursor/plans/<run_id>/40-plan.plan.md`
 - `50-plan-review.md` when required (full)
 
 ## Outputs
 
 - Application code per plan
 - `60-implementation-notes.md` — summary, files touched, tests/commands run
+- Update plan `todos[].status` in `.cursor/plans/<run_id>/40-plan.plan.md` as work progresses
 - `manifest.json` — set `stages.developer` to `done`
 
 ### Completeness of `60-implementation-notes.md` (mandatory)

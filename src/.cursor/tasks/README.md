@@ -22,7 +22,7 @@ This directory stores **versioned run folders** for the team pipeline. Nothing h
 | `10-analyst.md` | analyst | Requirements, cases, acceptance criteria; **full** content same depth as the analyst’s narrative in chat (not an abbreviated file-only summary) |
 | `20-architecture.md` | architect | Design, boundaries, risks (full mode); **full** narrative in file, same as chat |
 | `30-critical-review.md` | critical-reviewer | Blockers, questions, go/no-go (full mode); **full** review in file |
-| `40-plan.plan.md` | planner | YAML frontmatter + **full** body (not frontmatter-only); task breakdown, dependencies |
+| `40-plan.plan.path` | planner | Link (one line) to canonical plan under `.cursor/plans/<run_id>/40-plan.plan.md` |
 | `50-plan-review.md` | plan_reviewer | Plan review notes (full mode); **full** edits and concerns in file |
 | `60-implementation-notes.md` | developer | What changed, tests/commands run — **full** log, same depth as chat |
 | `70-code-review.md` | code_reviewer | Review findings — **full** severity/location/fix guidance in file |

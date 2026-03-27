@@ -138,7 +138,7 @@ run=.cursor\tasks\runs\20260325_o2k-exchange-audit_01
 
 Полная таблица — в [.cursor/tasks/README.md](src/.cursor/tasks/README.md). Кратко:
 
-`00-brief.md` → `10-analyst.md` → `20-architecture.md` → `30-critical-review.md` → `40-plan.plan.md` → `50-plan-review.md` → `60-implementation-notes.md` → `70-code-review.md`, плюс `manifest.json` на всех шагах.
+`00-brief.md` → `10-analyst.md` → `20-architecture.md` → `30-critical-review.md` → `40-plan.plan.path` (ссылка на `.cursor/plans/<run_id>/40-plan.plan.md`) → `50-plan-review.md` → `60-implementation-notes.md` → `70-code-review.md`, плюс `manifest.json` на всех шагах.
 
 ## Справочные материалы в пакете
 
